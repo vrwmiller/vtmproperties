@@ -1,0 +1,33 @@
+{
+  "name": "vtm-properties-website",
+  "version": "1.0.0",
+  "description": "Modern real estate website for vtm properties",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python -m http.server 8000",
+    "dev": "npx serve .",
+    "lint": "echo 'No linting configured'",
+    "build": "echo 'Static site - no build step required'"
+  },
+  "keywords": [
+    "real-estate",
+    "property-management",
+    "cloudflare-pages",
+    "bootstrap",
+    "static-site"
+  ],
+  "author": "vtm properties",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vrwmiller/vtmproperties.git"
+  },
+  "homepage": "https://www.vtmproperties.com"
+}
