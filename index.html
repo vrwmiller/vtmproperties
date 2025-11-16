@@ -29,6 +29,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Custom CSS -->
     <link href="css/style.css" rel="stylesheet">
+    <!-- Cloudflare Turnstile snippet -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -238,8 +240,13 @@
                                     <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Please describe how we can help you..."></textarea>
                                 </div>
                                 
+                                <!-- Cloudflare Turnstile widget  -->
+                                <div class="mb-4 text-center">
+                                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACBBiMlY4RoankgC" data-callback="onTurnstileSuccess"></div>
+                                </div>
+                                <input id="cf-token" type="hidden" name="cf-turnstile-response">
                                 <div class="text-center">
-                                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <button id="send" type="submit" class="btn btn-primary btn-lg px-5" disabled>
                                         <i class="bi bi-send me-2"></i>Send Message
                                     </button>
                                 </div>
