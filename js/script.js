@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize contact form handling
     handleContactForm();
+
+    // Cloudflare Turnstile callback function
+    window.onTurnstileSuccess = function(token) {
+        document.getElementById('cf-token').value = token;
+        document.getElementById('send').disabled = false;
+        console.log('Turnstile verification successful');
+    };
 });
 
 // Smooth scrolling for navigation links
@@ -139,31 +146,47 @@ function handleContactForm() {
     if (contactForm) {
         contactForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            
-            const submitBtn = this.querySelector('button[type="submit"]');
+
+            const submitBtn = document.getElementById('send');
             const originalText = submitBtn.innerHTML;
             const messagesDiv = document.getElementById('form-messages');
-            
+
             // Clear previous messages
             messagesDiv.innerHTML = '';
-            
+
             // Add loading state
             submitBtn.innerHTML = '<span class="loading"></span> Sending...';
             submitBtn.disabled = true;
-            
+
             // Collect form data
             const formData = new FormData(this);
             const firstName = formData.get('firstName');
             const lastName = formData.get('lastName');
+            const turnstileToken = formData.get('cf-turnstile-response');
             const data = {
                 name: `${firstName} ${lastName}`.trim(),
                 email: formData.get('email'),
                 phone: formData.get('phone') || '',
                 subject: formData.get('subject'),
                 message: formData.get('message'),
+                'cf-turnstile-response': turnstileToken,
                 source: 'vtmproperties.com'
             };
-            
+
+            // Validate Turnstile token
+            if (!turnstileToken) {
+                messagesDiv.innerHTML = `
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Error:</strong> Please complete the security verification.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+
             try {
                 const response = await fetch('/api/contact', {
                     method: 'POST',
@@ -172,9 +195,9 @@ function handleContactForm() {
                     },
                     body: JSON.stringify(data)
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     // Show success message
                     messagesDiv.innerHTML = `
@@ -184,15 +207,16 @@ function handleContactForm() {
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     `;
-                    
+
                     // Reset form
                     this.reset();
-                    
+                    document.getElementById('send').disabled = true;
+
                 } else {
                     // Handle API error response
                     const errorMessage = result.error || 'An error occurred while sending your message.';
                     const details = result.details ? result.details.join(', ') : '';
-                    
+
                     messagesDiv.innerHTML = `
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="bi bi-exclamation-triangle me-2"></i>
@@ -201,10 +225,10 @@ function handleContactForm() {
                         </div>
                     `;
                 }
-                
+
             } catch (error) {
                 console.error('Error sending message:', error);
-                
+
                 // Show error message
                 messagesDiv.innerHTML = `
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -216,7 +240,8 @@ function handleContactForm() {
             } finally {
                 // Restore button
                 submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                // Only re-enable if token is present
+                submitBtn.disabled = !document.getElementById('cf-token').value;
             }
         });
     }
